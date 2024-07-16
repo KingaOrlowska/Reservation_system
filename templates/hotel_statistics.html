@@ -1,0 +1,467 @@
+{##}
+{#<!DOCTYPE html>#}
+{#<html lang="pl">#}
+{#<head>#}
+{#    <meta charset="UTF-8">#}
+{#    <meta name="viewport" content="width=device-width, initial-scale=1.0">#}
+{#    <title>Statystyki hotelu</title>#}
+{#    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">#}
+{#    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.min.js"></script>#}
+{#</head>#}
+{#<body>#}
+{#    <div class="container mt-5">#}
+{#        <h1>Statystyki hotelu</h1>#}
+{#        <div class="row">#}
+{#            <div class="col-md-6">#}
+{#                <canvas id="occupancyChart"></canvas>#}
+{#            </div>#}
+{#            <div class="col-md-6">#}
+{#                <canvas id="reservationChart"></canvas>#}
+{#            </div>#}
+{#            <div class="col-md-6">#}
+{#                <canvas id="guestChart"></canvas>#}
+{#            </div>#}
+{#            <div class="col-md-6">#}
+{#                <canvas id="revenueChart"></canvas>#}
+{#            </div>#}
+{#            <div class="col-md-6">#}
+{#                <canvas id="paymentChart"></canvas>#}
+{#            </div>#}
+{#            <div class="col-md-6">#}
+{#                <canvas id="roomChart"></canvas>#}
+{#            </div>#}
+{#            <div class="col-md-6">#}
+{#                <canvas id="extrasChart"></canvas>#}
+{#            </div>#}
+{#        </div>#}
+{#    </div>#}
+{##}
+{#    <script>#}
+{#        document.addEventListener('DOMContentLoaded', function () {#}
+{#            var ctxOccupancy = document.getElementById('occupancyChart').getContext('2d');#}
+{#            var occupancyChart = new Chart(ctxOccupancy, {#}
+{#                type: 'bar',#}
+{#                data: {#}
+{#                    labels: ['Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec', 'Lipiec', 'Sierpień', 'Wrzesień', 'Październik', 'Listopad', 'Grudzień'],#}
+{#                    datasets: [#}
+{#                        {#}
+{#                            label: 'Obłożenie - Rok bieżący',#}
+{#                            data: [{{ monthly_stats.current_year.1 }}, {{ monthly_stats.current_year.2 }}, {{ monthly_stats.current_year.3 }}, {{ monthly_stats.current_year.4 }}, {{ monthly_stats.current_year.5 }}, {{ monthly_stats.current_year.6 }}, {{ monthly_stats.current_year.7 }}, {{ monthly_stats.current_year.8 }}, {{ monthly_stats.current_year.9 }}, {{ monthly_stats.current_year.10 }}, {{ monthly_stats.current_year.11 }}, {{ monthly_stats.current_year.12 }}],#}
+{#                            backgroundColor: 'rgba(75, 192, 192, 0.2)',#}
+{#                            borderColor: 'rgba(75, 192, 192, 1)',#}
+{#                            borderWidth: 1#}
+{#                        },#}
+{#                        {#}
+{#                            label: 'Obłożenie - Rok poprzedni',#}
+{#                            data: [{{ monthly_stats.previous_year.1 }}, {{ monthly_stats.previous_year.2 }}, {{ monthly_stats.previous_year.3 }}, {{ monthly_stats.previous_year.4 }}, {{ monthly_stats.previous_year.5 }}, {{ monthly_stats.previous_year.6 }}, {{ monthly_stats.previous_year.7 }}, {{ monthly_stats.previous_year.8 }}, {{ monthly_stats.previous_year.9 }}, {{ monthly_stats.previous_year.10 }}, {{ monthly_stats.previous_year.11 }}, {{ monthly_stats.previous_year.12 }}],#}
+{#                            backgroundColor: 'rgba(153, 102, 255, 0.2)',#}
+{#                            borderColor: 'rgba(153, 102, 255, 1)',#}
+{#                            borderWidth: 1#}
+{#                        }#}
+{#                    ]#}
+{#                },#}
+{#                options: {#}
+{#                    scales: {#}
+{#                        y: {#}
+{#                            beginAtZero: true#}
+{#                        }#}
+{#                    }#}
+{#                }#}
+{#            });#}
+{##}
+{#            var ctxReservation = document.getElementById('reservationChart').getContext('2d');#}
+{#            var reservationChart = new Chart(ctxReservation, {#}
+{#                type: 'bar',#}
+{#                data: {#}
+{#                    labels: ['Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec', 'Lipiec', 'Sierpień', 'Wrzesień', 'Październik', 'Listopad', 'Grudzień'],#}
+{#                    datasets: [{#}
+{#                        label: 'Rezerwacje',#}
+{#                        data: [{{ monthly_stats.current_year.1 }}, {{ monthly_stats.current_year.2 }}, {{ monthly_stats.current_year.3 }}, {{ monthly_stats.current_year.4 }}, {{ monthly_stats.current_year.5 }}, {{ monthly_stats.current_year.6 }}, {{ monthly_stats.current_year.7 }}, {{ monthly_stats.current_year.8 }}, {{ monthly_stats.current_year.9 }}, {{ monthly_stats.current_year.10 }}, {{ monthly_stats.current_year.11 }}, {{ monthly_stats.current_year.12 }}],#}
+{#                        backgroundColor: 'rgba(54, 162, 235, 0.2)',#}
+{#                        borderColor: 'rgba(54, 162, 235, 1)',#}
+{#                        borderWidth: 1#}
+{#                    }]#}
+{#                },#}
+{#                options: {#}
+{#                    scales: {#}
+{#                        y: {#}
+{#                            beginAtZero: true#}
+{#                        }#}
+{#                    }#}
+{#                }#}
+{#            });#}
+{##}
+{#            var ctxGuest = document.getElementById('guestChart').getContext('2d');#}
+{#            var guestChart = new Chart(ctxGuest, {#}
+{#                type: 'bar',#}
+{#                data: {#}
+{#                    labels: ['Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec', 'Lipiec', 'Sierpień', 'Wrzesień', 'Październik', 'Listopad', 'Grudzień'],#}
+{#                    datasets: [{#}
+{#                        label: 'Liczba gości',#}
+{#                        data: [{{ monthly_guest_counts.1 }}, {{ monthly_guest_counts.2 }}, {{ monthly_guest_counts.3 }}, {{ monthly_guest_counts.4 }}, {{ monthly_guest_counts.5 }}, {{ monthly_guest_counts.6 }}, {{ monthly_guest_counts.7 }}, {{ monthly_guest_counts.8 }}, {{ monthly_guest_counts.9 }}, {{ monthly_guest_counts.10 }}, {{ monthly_guest_counts.11 }}, {{ monthly_guest_counts.12 }}],#}
+{#                        backgroundColor: 'rgba(255, 206, 86, 0.2)',#}
+{#                        borderColor: 'rgba(255, 206, 86, 1)',#}
+{#                        borderWidth: 1#}
+{#                    }]#}
+{#                },#}
+{#                options: {#}
+{#                    scales: {#}
+{#                        y: {#}
+{#                            beginAtZero: true#}
+{#                        }#}
+{#                    }#}
+{#                }#}
+{#            });#}
+{##}
+{#            var ctxRevenue = document.getElementById('revenueChart').getContext('2d');#}
+{#            var revenueChart = new Chart(ctxRevenue, {#}
+{#                type: 'bar',#}
+{#                data: {#}
+{#                    labels: ['Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec', 'Lipiec', 'Sierpień', 'Wrzesień', 'Październik', 'Listopad', 'Grudzień'],#}
+{#                    datasets: [{#}
+{#                        label: 'Obrót (PLN)',#}
+{#                        data: [{{ monthly_revenue.1 }}, {{ monthly_revenue.2 }}, {{ monthly_revenue.3 }}, {{ monthly_revenue.4 }}, {{ monthly_revenue.5 }}, {{ monthly_revenue.6 }}, {{ monthly_revenue.7 }}, {{ monthly_revenue.8 }}, {{ monthly_revenue.9 }}, {{ monthly_revenue.10 }}, {{ monthly_revenue.11 }}, {{ monthly_revenue.12 }}],#}
+{#                        backgroundColor: 'rgba(75, 192, 192, 0.2)',#}
+{#                        borderColor: 'rgba(75, 192, 192, 1)',#}
+{#                        borderWidth: 1#}
+{#                    }]#}
+{#                },#}
+{#                options: {#}
+{#                    scales: {#}
+{#                        y: {#}
+{#                            beginAtZero: true#}
+{#                        }#}
+{#                    }#}
+{#                }#}
+{#            });#}
+{##}
+{#            var ctxPayment = document.getElementById('paymentChart').getContext('2d');#}
+{#            var paymentChart = new Chart(ctxPayment, {#}
+{#                type: 'doughnut',#}
+{#                data: {#}
+{#                    labels: ['Gotówka', 'Karta kredytowa', 'PayPal', 'Karta debetowa'],#}
+{#                    datasets: [{#}
+{#                        label: 'Metody płatności',#}
+{#                        data: [{{ payment_methods.cash }}, {{ payment_methods.credit_card }}, {{ payment_methods.paypal }}, {{ payment_methods.debit_card }}],#}
+{#                        backgroundColor: [#}
+{#                            'rgba(255, 99, 132, 0.2)',#}
+{#                            'rgba(54, 162, 235, 0.2)',#}
+{#                            'rgba(255, 206, 86, 0.2)',#}
+{#                            'rgba(75, 192, 192, 0.2)'#}
+{#                        ],#}
+{#                        borderColor: [#}
+{#                            'rgba(255, 99, 132, 1)',#}
+{#                            'rgba(54, 162, 235, 1)',#}
+{#                            'rgba(255, 206, 86, 1)',#}
+{#                            'rgba(75, 192, 192, 1)'#}
+{#                        ],#}
+{#                        borderWidth: 1#}
+{#                    }]#}
+{#                },#}
+{#                options: {#}
+{#                    plugins: {#}
+{#                        tooltip: {#}
+{#                            callbacks: {#}
+{#                                label: function(tooltipItem) {#}
+{#                                    return tooltipItem.label + ': ' + tooltipItem.raw + ' transakcje';#}
+{#                                }#}
+{#                            }#}
+{#                        }#}
+{#                    }#}
+{#                }#}
+{#            });#}
+{##}
+{#            var ctxRoom = document.getElementById('roomChart').getContext('2d');#}
+{#            var roomChart = new Chart(ctxRoom, {#}
+{#                type: 'bar',#}
+{#                data: {#}
+{#                    labels: [{% for room, count in room_stats.items %} '{{ room }}', {% endfor %}],#}
+{#                    datasets: [{#}
+{#                        label: 'Wybór pokoi',#}
+{#                        data: [{% for room, count in room_stats.items %} {{ count }}, {% endfor %}],#}
+{#                        backgroundColor: 'rgba(153, 102, 255, 0.2)',#}
+{#                        borderColor: 'rgba(153, 102, 255, 1)',#}
+{#                        borderWidth: 1#}
+{#                    }]#}
+{#                },#}
+{#                options: {#}
+{#                    scales: {#}
+{#                        y: {#}
+{#                            beginAtZero: true#}
+{#                        }#}
+{#                    }#}
+{#                }#}
+{#            });#}
+{##}
+{#            var ctxExtras = document.getElementById('extrasChart').getContext('2d');#}
+{#            var extrasChart = new Chart(ctxExtras, {#}
+{#                type: 'doughnut',#}
+{#                data: {#}
+{#                    labels: ['Brak', 'Spa', 'Gastronomia'],#}
+{#                    datasets: [{#}
+{#                        label: 'Wybór dodatków',#}
+{#                        data: [{{ extras_stats.none }}, {{ extras_stats.spa }}, {{ extras_stats.gastronomy }}],#}
+{#                        backgroundColor: [#}
+{#                            'rgba(255, 159, 64, 0.2)',#}
+{#                            'rgba(255, 99, 132, 0.2)',#}
+{#                            'rgba(54, 162, 235, 0.2)'#}
+{#                        ],#}
+{#                        borderColor: [#}
+{#                            'rgba(255, 159, 64, 1)',#}
+{#                            'rgba(255, 99, 132, 1)',#}
+{#                            'rgba(54, 162, 235, 1)'#}
+{#                        ],#}
+{#                        borderWidth: 1#}
+{#                    }]#}
+{#                },#}
+{#                options: {#}
+{#                    plugins: {#}
+{#                        tooltip: {#}
+{#                            callbacks: {#}
+{#                                label: function(tooltipItem) {#}
+{#                                    return tooltipItem.label + ': ' + tooltipItem.raw + ' rezerwacje';#}
+{#                                }#}
+{#                            }#}
+{#                        }#}
+{#                    }#}
+{#                }#}
+{#            });#}
+{#        });#}
+{#    </script>#}
+{#</body>#}
+{#</html>#}
+
+
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statystyki hotelu</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.min.js"></script>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1>Statystyki hotelu</h1>
+        <div class="row">
+            <div class="col-md-6">
+                <canvas id="occupancyChart"></canvas>
+            </div>
+            <div class="col-md-6">
+                <canvas id="reservationChart"></canvas>
+            </div>
+            <div class="col-md-6">
+                <canvas id="guestChart"></canvas>
+            </div>
+            <div class="col-md-6">
+                <canvas id="revenueChart"></canvas>
+            </div>
+            <div class="col-md-6">
+                <canvas id="paymentChart"></canvas>
+            </div>
+            <div class="col-md-6">
+                <canvas id="roomChart"></canvas>
+            </div>
+            <div class="col-md-6">
+                <canvas id="serviceChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var ctxOccupancy = document.getElementById('occupancyChart').getContext('2d');
+            var occupancyChart = new Chart(ctxOccupancy, {
+                type: 'bar',
+                data: {
+                    labels: ['Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec', 'Lipiec', 'Sierpień', 'Wrzesień', 'Październik', 'Listopad', 'Grudzień'],
+                    datasets: [
+                        {
+                            label: 'Obłożenie - Rok bieżący',
+                            data: [{{ monthly_stats.current_year.1 }}, {{ monthly_stats.current_year.2 }}, {{ monthly_stats.current_year.3 }}, {{ monthly_stats.current_year.4 }}, {{ monthly_stats.current_year.5 }}, {{ monthly_stats.current_year.6 }}, {{ monthly_stats.current_year.7 }}, {{ monthly_stats.current_year.8 }}, {{ monthly_stats.current_year.9 }}, {{ monthly_stats.current_year.10 }}, {{ monthly_stats.current_year.11 }}, {{ monthly_stats.current_year.12 }}],
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Obłożenie - Rok poprzedni',
+                            data: [{{ monthly_stats.previous_year.1 }}, {{ monthly_stats.previous_year.2 }}, {{ monthly_stats.previous_year.3 }}, {{ monthly_stats.previous_year.4 }}, {{ monthly_stats.previous_year.5 }}, {{ monthly_stats.previous_year.6 }}, {{ monthly_stats.previous_year.7 }}, {{ monthly_stats.previous_year.8 }}, {{ monthly_stats.previous_year.9 }}, {{ monthly_stats.previous_year.10 }}, {{ monthly_stats.previous_year.11 }}, {{ monthly_stats.previous_year.12 }}],
+                            backgroundColor: 'rgba(153, 102, 255, 0.2)',
+                            borderColor: 'rgba(153, 102, 255, 1)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            var ctxReservation = document.getElementById('reservationChart').getContext('2d');
+            var reservationChart = new Chart(ctxReservation, {
+                type: 'bar',
+                data: {
+                    labels: ['Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec', 'Lipiec', 'Sierpień', 'Wrzesień', 'Październik', 'Listopad', 'Grudzień'],
+                    datasets: [{
+                        label: 'Rezerwacje',
+                        data: [{{ monthly_stats.current_year.1 }}, {{ monthly_stats.current_year.2 }}, {{ monthly_stats.current_year.3 }}, {{ monthly_stats.current_year.4 }}, {{ monthly_stats.current_year.5 }}, {{ monthly_stats.current_year.6 }}, {{ monthly_stats.current_year.7 }}, {{ monthly_stats.current_year.8 }}, {{ monthly_stats.current_year.9 }}, {{ monthly_stats.current_year.10 }}, {{ monthly_stats.current_year.11 }}, {{ monthly_stats.current_year.12 }}],
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            var ctxGuest = document.getElementById('guestChart').getContext('2d');
+            var guestChart = new Chart(ctxGuest, {
+                type: 'bar',
+                data: {
+                    labels: ['Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec', 'Lipiec', 'Sierpień', 'Wrzesień', 'Październik', 'Listopad', 'Grudzień'],
+                    datasets: [{
+                        label: 'Liczba gości',
+                        data: [{{ monthly_guest_counts.1 }}, {{ monthly_guest_counts.2 }}, {{ monthly_guest_counts.3 }}, {{ monthly_guest_counts.4 }}, {{ monthly_guest_counts.5 }}, {{ monthly_guest_counts.6 }}, {{ monthly_guest_counts.7 }}, {{ monthly_guest_counts.8 }}, {{ monthly_guest_counts.9 }}, {{ monthly_guest_counts.10 }}, {{ monthly_guest_counts.11 }}, {{ monthly_guest_counts.12 }}],
+                        backgroundColor: 'rgba(255, 206, 86, 0.2)',
+                        borderColor: 'rgba(255, 206, 86, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            var ctxRevenue = document.getElementById('revenueChart').getContext('2d');
+            var revenueChart = new Chart(ctxRevenue, {
+                type: 'bar',
+                data: {
+                    labels: ['Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec', 'Lipiec', 'Sierpień', 'Wrzesień', 'Październik', 'Listopad', 'Grudzień'],
+                    datasets: [{
+                        label: 'Obrót (PLN)',
+                        data: [{{ monthly_revenue.1 }}, {{ monthly_revenue.2 }}, {{ monthly_revenue.3 }}, {{ monthly_revenue.4 }}, {{ monthly_revenue.5 }}, {{ monthly_revenue.6 }}, {{ monthly_revenue.7 }}, {{ monthly_revenue.8 }}, {{ monthly_revenue.9 }}, {{ monthly_revenue.10 }}, {{ monthly_revenue.11 }}, {{ monthly_revenue.12 }}],
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            var ctxPayment = document.getElementById('paymentChart').getContext('2d');
+            var paymentChart = new Chart(ctxPayment, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Gotówka', 'Karta kredytowa', 'PayPal', 'Karta debetowa'],
+                    datasets: [{
+                        label: 'Metody płatności',
+                        data: [{{ payment_methods.cash }}, {{ payment_methods.credit_card }}, {{ payment_methods.paypal }}, {{ payment_methods.debit_card }}],
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.2)',
+                            'rgba(54, 162, 235, 0.2)',
+                            'rgba(255, 206, 86, 0.2)',
+                            'rgba(75, 192, 192, 0.2)'
+                        ],
+                        borderColor: [
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(75, 192, 192, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(tooltipItem) {
+                                    return tooltipItem.label + ': ' + tooltipItem.raw + ' transakcje';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            var ctxRoom = document.getElementById('roomChart').getContext('2d');
+            var roomChart = new Chart(ctxRoom, {
+                type: 'bar',
+                data: {
+                    labels: [{% for room, count in room_stats.items %} '{{ room }}', {% endfor %}],
+                    datasets: [{
+                        label: 'Wybór pokoi',
+                        data: [{% for room, count in room_stats.items %} {{ count }}, {% endfor %}],
+                        backgroundColor: 'rgba(153, 102, 255, 0.2)',
+                        borderColor: 'rgba(153, 102, 255, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            var ctxService = document.getElementById('serviceChart').getContext('2d');
+            var serviceChart = new Chart(ctxService, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Brak', 'Spa', 'Room Service', 'Parking', 'Gastronomia'],
+                    datasets: [{
+                        label: 'Wybór usług',
+                        data: [{{ service_stats.Spa }}, {{ service_stats.Room_Service }}, {{ service_stats.Parking }}, {{ service_stats.Gastronomia }}],
+                        backgroundColor: [
+                            'rgba(255, 159, 64, 0.2)',
+                            'rgba(255, 99, 132, 0.2)',
+                            'rgba(54, 162, 235, 0.2)',
+                            'rgba(75, 192, 192, 0.2)'
+                        ],
+                        borderColor: [
+                            'rgba(255, 159, 64, 1)',
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(75, 192, 192, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(tooltipItem) {
+                                    return tooltipItem.label + ': ' + tooltipItem.raw + ' rezerwacje';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
