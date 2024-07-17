@@ -6,23 +6,37 @@ from django.utils import timezone
 from django.core.mail import send_mail
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.decorators.csrf import csrf_protect
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.utils.decorators import method_decorator
 from .models import Reservation, Room, Service, ReservationStatus, Guest
 from .forms import ReservationForm
 
-# Funkcja do wydruku emaila na terminalu
-def print_email_to_terminal(subject, message, from_email, recipient_list):
-    print(f"Subject: {subject}")
-    print(f"Message: {message}")
-    print(f"From: {from_email}")
-    print(f"To: {', '.join(recipient_list)}")
+# Mixin wymagający uprawnień administratora
+class AdminRequiredMixin(UserPassesTestMixin):
+    def test_func(self):
+        return self.request.user.is_superuser
 
-# funkcja logowania z obsługą CSRF
-@csrf_protect
-def login_view(request):
-    if request.method == 'POST':
+    def handle_no_permission(self):
+        return redirect('login')
+
+# Mixin wymagający uprawnień recepcjonisty
+class ReceptionRequiredMixin(UserPassesTestMixin):
+    def test_func(self):
+        return self.request.user.username == 'reception'
+
+    def handle_no_permission(self):
+        return redirect('login')
+
+# Mixin dla obsługi CSRF
+class CsrfExemptMixin:
+    @method_decorator(csrf_protect)
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+
+# Widok logowania z obsługą CSRF
+class LoginView(CsrfExemptMixin, View):
+    def post(self, request):
         username = request.POST['username']
         password = request.POST['password']
         user = authenticate(request, username=username, password=password)
@@ -31,29 +45,28 @@ def login_view(request):
             return redirect('dashboard')
         else:
             return render(request, 'login.html', {'error': 'Invalid username or password'})
-    else:
+
+    def get(self, request):
         return render(request, 'login.html')
 
-
 # Widok wylogowania
-@login_required
-def logout_view(request):
-    logout(request)
-    return redirect('login'))
-
-
-# Widok główny, przekierowujący użytkowników na odpowiednie dashboardy
-@login_required
-def dashboard_view(request):
-    if request.user.is_superuser:
-        return redirect('admin_dashboard')
-    elif request.user.username == 'reception':
-        return redirect('reception_dashboard')
-    else:
+class LogoutView(LoginRequiredMixin, View):
+    def get(self, request):
+        logout(request)
         return redirect('login')
 
+# Widok główny, przekierowujący użytkowników na odpowiednie dashboardy
+class DashboardView(LoginRequiredMixin, View):
+    def get(self, request):
+        if request.user.is_superuser:
+            return redirect('admin_dashboard')
+        elif request.user.username == 'reception':
+            return redirect('reception_dashboard')
+        else:
+            return redirect('login')
+
 # Widok dashboardu admina
-class AdminDashboardView(LoginRequiredMixin, View):
+class AdminDashboardView(LoginRequiredMixin, AdminRequiredMixin, View):
     def get(self, request):
         tiles = [
             {'title': 'Kalendarz', 'url': 'calendar_view'},
@@ -63,7 +76,7 @@ class AdminDashboardView(LoginRequiredMixin, View):
         return render(request, 'admin_dashboard.html', {'tiles': tiles})
 
 # Widok dashboardu recepcji
-class ReceptionDashboardView(LoginRequiredMixin, View):
+class ReceptionDashboardView(LoginRequiredMixin, ReceptionRequiredMixin, View):
     def get(self, request):
         tiles = [
             {'title': 'Kalendarz', 'url': 'calendar_view'},
@@ -72,6 +85,7 @@ class ReceptionDashboardView(LoginRequiredMixin, View):
         ]
         return render(request, 'reception_dashboard.html', {'tiles': tiles})
 
+# Widok dodawania rezerwacji
 class AddReservationView(LoginRequiredMixin, View):
     def get(self, request):
         check_in_date = request.GET.get('check_in')
@@ -87,8 +101,8 @@ class AddReservationView(LoginRequiredMixin, View):
                     check_out__gt=check_in_date
                 ).values_list('rooms', flat=True)
                 available_rooms = available_rooms.exclude(id__in=reserved_rooms)
-            except ValueError as e:
-                messages.error(request, f"Error parsing dates: {e}")
+            except ValueError:
+                messages.error(request, "Enter a valid date.")
 
         form = ReservationForm(initial={'check_in': check_in_date, 'check_out': check_out_date})
         return render(request, 'add_reservation.html', {'form': form, 'available_rooms': available_rooms})
@@ -114,14 +128,6 @@ class AddReservationView(LoginRequiredMixin, View):
                 fail_silently=False,
             )
 
-            # Sprawdź liczbę zarezerwowanych pokoi na dany dzień
-            daily_room_reservations = {}
-            for day in range((reservation.check_out - reservation.check_in).days + 1):
-                current_day = reservation.check_in + timedelta(days=day)
-                daily_room_reservations[current_day] = daily_room_reservations.get(current_day, 0) + reservation.rooms.count()
-                if daily_room_reservations[current_day] > 10:  # Threshold of 10 rooms
-                    messages.warning(request, f"Sprawdź stan magazynowy hotelu, liczba zarezerwowanych pokoi na dzień {current_day} przekroczyła 10.")
-
             return redirect(reverse('calendar_view'))
 
         # Jeśli formularz nie jest poprawny, ponownie pobieramy dostępne pokoje
@@ -138,11 +144,12 @@ class AddReservationView(LoginRequiredMixin, View):
                     check_out__gt=check_in_date
                 ).values_list('rooms', flat=True)
                 available_rooms = available_rooms.exclude(id__in=reserved_rooms)
-            except ValueError as e:
-                messages.error(request, f"Error parsing dates: {e}")
+            except ValueError:
+                messages.error(request, "Enter a valid date.")
 
         return render(request, 'add_reservation.html', {'form': form, 'available_rooms': available_rooms})
 
+# Widok edycji rezerwacji
 class EditReservationView(LoginRequiredMixin, View):
     def get(self, request, reservation_id):
         reservation = get_object_or_404(Reservation, id=reservation_id)
@@ -187,14 +194,6 @@ class EditReservationView(LoginRequiredMixin, View):
                 [reservation.guest_email],
                 fail_silently=False,
             )
-
-            # Sprawdź liczbę zarezerwowanych pokoi na dany dzień
-            daily_room_reservations = {}
-            for day in range((reservation.check_out - reservation.check_in).days + 1):
-                current_day = reservation.check_in + timedelta(days=day)
-                daily_room_reservations[current_day] = daily_room_reservations.get(current_day, 0) + reservation.rooms.count()
-                if daily_room_reservations[current_day] > 10:  # Threshold of 10 rooms
-                    messages.warning(request, f"Sprawdź stan magazynowy hotelu, liczba zarezerwowanych pokoi na dzień {current_day} przekroczyła 10.")
 
             return redirect(reverse('calendar_view'))
 
@@ -246,7 +245,7 @@ class CalendarView(LoginRequiredMixin, View):
 
         # Dodaj komunikat o przekroczeniu liczby zarezerwowanych pokoi
         for day, count in daily_room_reservations.items():
-            if count > 10:  # Threshold of 10 rooms
+            if count > 10:  # Próg 10 pokoi
                 request.session.setdefault('messages', [])
                 request.session['messages'].append(f"Sprawdź stan magazynowy hotelu, liczba zarezerwowanych pokoi na dzień {day} przekroczyła 10.")
 
@@ -258,7 +257,7 @@ class CalendarView(LoginRequiredMixin, View):
             'events': events,
             'rooms': rooms,
             'current_date': timezone.now().date(),
-            'days': [date.today() + timedelta(days=i) for i in range(30)]  # example of next 30 days
+            'days': [date.today() + timedelta(days=i) for i in range(30)]  # przykład następnych 30 dni
         }
         return render(request, 'calendar.html', context)
 
@@ -294,7 +293,7 @@ class HotelStatisticsView(LoginRequiredMixin, View):
             month = reservation.check_in.month
             monthly_stats['current_year'][month] += 1
             monthly_guest_counts[month] += reservation.guest_count
-            monthly_revenue[month] += reservation.rooms.count() * 100  # Example room price
+            monthly_revenue[month] += reservation.rooms.count() * 100  # Przykładowa cena pokoju
             payment_methods[reservation.payment_method] += 1
             for room in reservation.rooms.all():
                 room_stats[room.number] += 1

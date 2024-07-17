@@ -1,17 +1,19 @@
-import os
 import pytest
+from django.contrib.auth.models import User
+from django.test import Client
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'reservation_system.settings')
+@pytest.fixture
+def client():
+    return Client()
 
-@pytest.fixture(scope='session')
-def django_db_setup():
-    from django.conf import settings
-    settings.DATABASES['default'] = {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'test_db',
-        'USER': 'your_user',
-        'PASSWORD': 'your_password',
-        'HOST': 'localhost',
-        'PORT': '5432',
-        'ATOMIC_REQUESTS': True,
-    }
+@pytest.fixture
+def user():
+    return User.objects.create_user(username='testuser', password='testpass')
+
+@pytest.fixture
+def admin_user():
+    return User.objects.create_superuser(username='admin', password='admin', email='admin@example.com')
+
+@pytest.fixture
+def reception_user():
+    return User.objects.create_user(username='reception', password='reception')
